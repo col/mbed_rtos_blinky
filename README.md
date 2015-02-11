@@ -1,5 +1,5 @@
 # mbed_rtos_blinky
-This is an attempt to get a very simple app to compile using the latest mbed and mbed-rtos libraries compiled with gcc-arm-none-eabi
+This is an attempt to get a very simple app to compile using the latest mbed and mbed-rtos libraries compiled with gcc-arm-none-eabi to run of the LPC1768.
 
 ## Dev Environment
 - Mac OS X 10.10
@@ -170,3 +170,30 @@ rtx/TARGET_CORTEX_M/rt_CMSIS.c:1695:1: warning: control reaches end of non-void 
  ^
 make: *** [build/rt_CMSIS.o] Error 1
 ```
+
+This error comes from here in rt_CMSIS.c
+
+```
+#if defined (__CORTEX_M4) || defined (__CORTEX_M4F)
+  #include "core_cm4.h"
+#elif defined (__CORTEX_M3)
+  #include "core_cm3.h"
+#elif defined (__CORTEX_M0)
+  #include "core_cm0.h"
+#elif defined (__CORTEX_M0PLUS)
+  #include "core_cm0plus.h"
+#else
+  #error "Missing __CORTEX_Mx definition"
+#endif
+```
+
+I'm only trying to get this to run on an LPC1768 so I simply added the ```__CORTEX_M3``` to the CC_SYMBOLS in the Makefile. It worked!
+This is probably a better approach for fixing the original compile error as well so I added ```TOOLCHAIN_GCC``` and removed my changes from ```cmsis_os.h```.
+
+```
+CC_SYMBOLS = -D$(TARGET_BOARD) -DTOOLCHAIN_GCC_ARM -DNDEBUG -D__CORTEX_M3 -DTOOLCHAIN_GCC
+```
+
+Compile Successful!!
+
+Having both ```TOOLCHAIN_GCC_ARM``` and ```TOOLCHAIN_GCC``` defined maybe isn't the best solution but it'll do for now.
